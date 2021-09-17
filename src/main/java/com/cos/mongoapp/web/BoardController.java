@@ -2,8 +2,11 @@ package com.cos.mongoapp.web;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,9 +19,35 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class BoardController {
-
+	
+	// DI
 	private final BoardRepository boardRepository;
 
+	// 수정
+	@PutMapping("/board/{id}")
+	public Board update(@RequestBody BoardSaveDto dto, @PathVariable String id) {
+		
+		Board board = dto.toEntity();
+		board.set_id(id); // save 함수는 같은 아이디면 수정한다
+		
+		return boardRepository.save(board);
+	}
+	
+	// 삭제
+	@DeleteMapping("/board/{id}")
+	public int deleteById(@PathVariable String id) {
+		boardRepository.deleteById(id); // 내부적으로 실행되다 오류 Exception 발동
+		
+		return 1; // 1: 성공 -1: 실패 
+		
+	}
+	
+	@GetMapping("/board/{id}")
+	public Board findById(@PathVariable String id) {
+		return boardRepository.findById(id).get();
+		
+	}
+	
 	@GetMapping("/board")
 	public List<Board> findAll() { 	//return을 JavaObject로 하면 스프링 내무적으로 JSON으로 자동 변환
 		return boardRepository.findAll();		
@@ -30,7 +59,10 @@ public class BoardController {
 		//dto는 xxx 마임, 우리는 json으로 넣어야됨
 		//@RequestBody 는 JSON 타입으로 받음.
 
-		return boardRepository.save(dto.toEntity());
+		Board boardEntity = boardRepository.save(dto.toEntity());
+		
+		return boardEntity; 
+		// MessageConverter 발동 -> 자바오브젝트를 JSON 변환해서 응답함
 	}
 
 
